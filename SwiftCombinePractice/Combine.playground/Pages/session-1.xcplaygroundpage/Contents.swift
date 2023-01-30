@@ -115,3 +115,68 @@ subject1.send("i")
 subject2.send(2)
 
 // 異なるSubscriptionを同じsubscriptionsとして格納することはOK
+
+
+// イベントについて
+//-> Combineで扱うイベントには値を渡すだけでなく、イベントの完了とエラーがある
+
+// 例④: .finished
+
+let subject3 = PassthroughSubject<String, Never>()
+
+
+final class Receiver5 {
+    private var subscription = Set<AnyCancellable>()
+    
+    init() {
+        subject3
+            .sink { completion in
+                print("Received Completion:", completion)
+            } receiveValue: { value in
+                print("ReceivedValue:", value)
+            }
+            .store(in: &subscription)
+    }
+
+}
+
+let receiver5 = Receiver5()
+subject3.send("a")
+subject3.send("i")
+subject3.send(completion: .finished)
+subject3.send("u")
+// finishedはイベントの送受信の完了を示す
+
+
+// 例⑤: .failure
+
+enum MyError: Error {
+    case failed
+}
+
+// genericsにMyError型を継承する
+let subject4 = PassthroughSubject<String, MyError>()
+
+final class Receiver6 {
+    private var subscriptions = Set<AnyCancellable>()
+    
+    init() {
+        subject4
+            .sink { completion in
+                print("ReceivedCompletion:", completion)
+            } receiveValue: { value in
+                print("ReceivedValue:", value)
+            }
+            .store(in: &subscriptions)
+    }
+}
+
+let receiver6 = Receiver6()
+subject4.send("a")
+subject4.send("i")
+subject4.send(completion: .failure(.failed))
+subject4.send("u")
+
+//.failureもイベントの送受信終了を意味する
+
+
