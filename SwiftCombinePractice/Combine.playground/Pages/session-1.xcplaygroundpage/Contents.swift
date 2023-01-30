@@ -180,3 +180,31 @@ subject4.send("u")
 //.failureもイベントの送受信終了を意味する
 
 
+
+// Operator
+// ->PublisherをSubscribeする前に何らかの加工を行うことができる
+// -> つまり、Publisherを加工して別のPublisherに変換することができる
+let subject7 = PassthroughSubject<Int, Never>()
+
+final class Receiver7 {
+    private var subscription = Set<AnyCancellable>()
+    private var formatter = NumberFormatter()
+    
+    init() {
+        formatter.numberStyle = .spellOut
+        
+        subject7
+            .map { value in // mapがOperatorとなる
+                self.formatter.string(from: NSNumber(integerLiteral: value)) ?? ""
+            }
+            .sink { value in
+                print("ReceivedValue:", value)
+            }
+            .store(in: &subscription)
+    }
+}
+
+
+let receiver7 = Receiver7()
+subject7.send(0)
+subject7.send(1)
