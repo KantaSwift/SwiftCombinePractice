@@ -75,3 +75,43 @@ let receiver3 = Receiver3()
 
 // Publisherはこれ以外にもURLSessionやSuquenceにも用意されている。またPublisherを自分で作ることもできる
 
+
+
+
+//Subscription
+// -> イベント処理を指定すること「subscribe」という
+// subscribeしたときの戻り値を「subscription」という
+// ->今までやってきたことを見るとsinkメソッドが「subscribe」の一つ
+// ->storeメソッドがsubscriptionを保存するメソッド
+//    ->これがないとsubscribeで指定した処理が破棄されてしまう
+
+
+
+let subject1 = PassthroughSubject<String, Never>()
+let subject2 = PassthroughSubject<Int, Never>()
+
+final class Receiver4 {
+    // subscriptionを格納する箱
+    private var subscriptions = Set<AnyCancellable>()
+    
+    init() {
+        subject1
+            .sink { value in
+                print("ReceivedValue[1]:", value)
+            }
+            .store(in: &subscriptions)
+        subject2
+            .sink { value in
+                print("ReceivedValue[2]", value)
+            }
+            .store(in: &subscriptions)
+    }
+}
+
+let receiver4 = Receiver4()
+subject1.send("a")
+subject2.send(1)
+subject1.send("i")
+subject2.send(2)
+
+// 異なるSubscriptionを同じsubscriptionsとして格納することはOK
